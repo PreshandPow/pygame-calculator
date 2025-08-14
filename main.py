@@ -1,4 +1,4 @@
-import pygame, math
+import pygame, math, time
 
 pygame.init()
 pygame.font.init()  # Make sure to initialize the font module
@@ -30,6 +30,9 @@ class Calculator:
         self.__surface = surface
         self.__width = 700
         self.__height = 1200
+        self.__state = False
+        self.__precedence = {'^': 3, '/': 2, '*': 2, '+': 1, '-': 1}
+        self.__operators = ['(', ')', '+', '-', '*', '/', '^']
         self.__vividYellow = '#FEE715'
         self.__richBlack = '#101820'
         self.__salmonRed = '#ED6F63'
@@ -41,7 +44,7 @@ class Calculator:
         self.createButtons()
 
         # Display box for calculator input/output
-        self.__displayBox = pygame.Rect(50, 100, 600, 150)
+        self.__displayBox = pygame.Rect(50, 25, 600, 150)
         self.__displayText = ""
         self.__displayFont = pygame.font.Font('LEMONMILK-Medium.otf', 80)
 
@@ -72,20 +75,26 @@ class Calculator:
 
             # Operators
             {'text': 'X', 'rect': (550, 500, 125, 150), 'color': self.__salmonRed,
-             'action': lambda: self.handle_input('*')},
+             'action': lambda: self.handle_input('x')},
             {'text': '÷', 'rect': (550, 675, 125, 150), 'color': self.__salmonRed,
-             'action': lambda: self.handle_input('/')},
+             'action': lambda: self.handle_input('÷')},
             {'text': '+', 'rect': (550, 850, 125, 150), 'color': self.__salmonRed,
              'action': lambda: self.handle_input('+')},
             {'text': '-', 'rect': (550, 1025, 125, 150), 'color': self.__salmonRed,
              'action': lambda: self.handle_input('-')},
+            {'text': '(', 'rect': (200, 360, 150, 125), 'color': self.__salmonRed,
+             'action': lambda: self.handle_input('(')},
+            {'text': ')', 'rect': (375, 360, 150, 125), 'color': self.__salmonRed,
+             'action': lambda: self.handle_input(')')},
+            {'text': '^', 'rect': (25, 360, 150, 125), 'color': self.__salmonRed,
+             'action': lambda: self.handle_input('^')},
 
             # Utility
             {'text': 'C', 'rect': (200, 1025, 150, 150), 'color': self.__deepNavy, 'text_color': self.__paleAqua,
              'action': self.clear_display},
             {'text': 'D', 'rect': (375, 1025, 150, 150), 'color': self.__deepNavy, 'text_color': self.__paleAqua,
              'action': self.delete_char},
-            {'text': '=', 'rect': (50, 275, 600, 150), 'color': self.__deepNavy, 'text_color': self.__paleAqua,
+            {'text': '=', 'rect': (50, 200, 600, 150), 'color': self.__deepNavy, 'text_color': self.__paleAqua,
              'action': self.evaluate_expression},
         ]
 
@@ -101,6 +110,10 @@ class Calculator:
             ))
 
     def handle_input(self, value):
+        if self.__state:
+            self.clear_display()
+            self.__state = False
+
         self.__displayText += value
 
     def clear_display(self):
@@ -110,11 +123,112 @@ class Calculator:
         self.__displayText = self.__displayText[:-1]
 
     def evaluate_expression(self):
+
         try:
-            result = str(eval(self.__displayText))
-            self.__displayText = result
+            result = self.__displayText
+            expression = self.tokenize(result)
+            self.clear_display()
+            RPNExpression = self.convertToRpn(expression)
+            rpnCalculation = self.calculateRpn(RPNExpression)
+            self.__displayText = str(rpnCalculation)
+            self.__state = True
+
         except:
             self.__displayText = "Error"
+            self.__state = True
+
+    def convertToRpn(self, expression):
+        inputInRpn = []
+        operators = []
+
+        for token in expression:
+            if token.isdigit():
+                inputInRpn.append(token)
+
+            elif token == '(':
+                operators.append(token)
+
+            elif token == ')':
+                while operators and operators[-1] != '(':
+                    inputInRpn.append(operators.pop())
+
+                if operators and operators[-1] == '(':
+                    operators.pop()
+                else:
+                    raise ValueError("Mismatched parentheses")
+
+            elif token in self.__operators:
+                while operators and operators[-1] != '(' and self.__precedence[operators[-1]] >= self.__precedence[
+                    token]:
+                    inputInRpn.append(operators.pop())
+                operators.append(token)
+
+        while operators:
+            op = operators.pop()
+            if op == '(':
+                raise ValueError("Mismatched parentheses")
+            inputInRpn.append(op)
+
+
+        print(inputInRpn)
+        return inputInRpn
+
+    def calculateRpn(self, RPNExpression):
+        operand = []
+        operator = []
+
+        for i in RPNExpression:
+            if i.isdigit():
+                operand.append(float(i))
+
+            elif i in self.__operators:
+                number2 = operand.pop()
+                number1 = operand.pop()
+
+                if i == '+':
+                    operand.append(number1 + number2)
+
+                if i == '-':
+                    operand.append(number1 - number2)
+
+                if i == '/':
+                    operand.append(number1 / number2)
+
+                if i == '*':
+                    operand.append(number1 * number2)
+
+                if i == '^':
+                    operand.append(number1 ** number2)
+
+                operator.append(i)
+
+        return operand[0]
+
+    def tokenize(self, result):
+        tokens = []
+        i = 0
+        while i < len(result):
+            char = result[i]
+            if char == 'x':
+                char = '*'
+            if char == '÷':
+                char = '/'
+            if char.isdigit():
+                numString = ''
+                while i < len(result) and result[i].isdigit():
+                    numString += result[i]
+                    i += 1
+                tokens.append(numString)
+
+            elif char in self.__operators:
+                tokens.append(char)
+                i += 1
+
+            else:
+                i += 1
+
+        return tokens
+
 
     def draw(self):
         self.__surface.fill(self.__richBlack)
