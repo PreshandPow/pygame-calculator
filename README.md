@@ -2,7 +2,7 @@ Pygame Calculator
 
 I created a graphical calculator built with Python's Pygame library. This project implements a full-featured calculator with a friendly UI, designed to handle standard arithmetic operations, operator precedence, and parentheses using Reverse Polish Notation to handle calculations.
 
-![Pygame Calculator in Action](https://imgur.com/a/SdoH4Gt.gif)
+![Pygame Calculator in Action](https://i.imgur.com/bIFpxfg.gif)
 
 I believe the core of this calculator is its robust parsing engine, which uses the Shunting-yard algorithm to convert infix expressions to Reverse Polish Notation (RPN). This RPN expression is then evaluated using a stack-based algorithm, ensuring all calculations adhere to BIDMAS/PEMDAS rules.
 
