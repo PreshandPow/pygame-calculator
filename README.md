@@ -32,3 +32,5 @@ How to Run
   3. Run the main.py file.
 
 This project took approximately 5 hours to complete and served as an excellent exercise in building a complete, functional application from scratch.
+
+![Pygame Calculator in Action]([link-to-your-gif-here.gif](https://imgur.com/a/SdoH4Gt))
