@@ -1,7 +1,7 @@
-import pygame, math, time
+import pygame
 
 pygame.init()
-pygame.font.init()  # Make sure to initialize the font module
+pygame.font.init()
 
 surfaceWidth, surfaceHeight = (700, 1200)
 surface = pygame.display.set_mode((surfaceWidth, surfaceHeight))
@@ -24,7 +24,7 @@ class Button:
         surface.blit(self.txt_surface, text_rect)
 
 
-# Calculator Class - Manages all UI elements
+# Calculator Class - Manages all UI elements and calculations
 class Calculator:
     def __init__(self):
         self.__surface = surface
@@ -112,6 +112,7 @@ class Calculator:
     def handle_input(self, value):
         if self.__state:
             self.clear_display()
+            # this is so if an answer is given back to the user, as soon as they enter a new character the board clears itself
             self.__state = False
 
         self.__displayText += value
@@ -125,9 +126,11 @@ class Calculator:
     def evaluate_expression(self):
 
         try:
+            # the expression from the display box is then tokenized to be split between operands and operators
             result = self.__displayText
             expression = self.tokenize(result)
             self.clear_display()
+            # it is then converted into RPN and then the RPN expression is calculated using a stack
             RPNExpression = self.convertToRpn(expression)
             rpnCalculation = self.calculateRpn(RPNExpression)
             self.__displayText = str(rpnCalculation)
@@ -170,7 +173,6 @@ class Calculator:
             inputInRpn.append(op)
 
 
-        print(inputInRpn)
         return inputInRpn
 
     def calculateRpn(self, RPNExpression):
